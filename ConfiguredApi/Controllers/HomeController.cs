@@ -1,25 +1,31 @@
+using ConfiguredApi.Settings;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace ConfiguredApi.Controllers;
 [ApiController]
 [Route("")]
-public class HomeController : Controller
+public class HomeController : ControllerBase
 {
-    private readonly IConfiguration _config;
+    private readonly AppSettings _settings;
 
-    public HomeController(IConfiguration config)
+    // Use constructor injection (recommended for singleton-scoped settings)
+    public HomeController(IOptions<AppSettings> options)
     {
-        _config = config;
+        _settings = options.Value;
     }
+
+    // Or inject directly (cleaner syntax)
     [HttpGet("")]
-    public IActionResult Index()
+    public IActionResult Index([FromServices] IOptions<AppSettings> options)
     {
-        var greeting = _config["DefaultGreeting"] ?? "Untitled";
+        var settings = options.Value;
             
         return Ok(new
         {
-            Title = greeting,
-            TimestampUtc = DateTime.UtcNow
+            Title = settings.DefaultGreeting,
+            DebugEnabled = settings.EnableDebugMode,
+            Timestamp = DateTime.UtcNow
         });
     }
 }
